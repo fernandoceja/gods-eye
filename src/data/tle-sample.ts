@@ -1,0 +1,13 @@
+/**
+ * Public NORAD elements for 11 Oct 2026 (SatNOGS / CalPoly redistribution).
+ * Used only when live CelesTrak cannot be reached. Not a substitute for today's set.
+ */
+export const SAMPLE_TLE = `ISS (ZARYA)
+1 25544U 98067A   26284.17638745  .00009430  00000-0  18014-3 0  9996
+2 25544  51.6312  86.0933 0006713 248.1316 111.8959 15.48821882589734
+CSS (TIANHE)
+1 48274U 21035A   26284.40461580  .00030969  00000-0  36663-3 0  9990
+2 48274  41.4699 336.1618 0000648  26.0481 334.0391 15.60584669311319
+`;
+
+export const SAMPLE_EPOCH_LABEL = "11 Oct 2026";
