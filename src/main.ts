@@ -7,6 +7,7 @@ import { loadOpensky } from "./adapters/opensky.ts";
 import { loadUsgs } from "./adapters/usgs.ts";
 import { clearCache } from "./cache.ts";
 import { SimClock } from "./clock.ts";
+import { flightDetail } from "./present.ts";
 import { formatPt, shiftDate, utcDateString } from "./format.ts";
 import { EARTH_RADIUS_KM } from "./math/geodesy.ts";
 import { nextPass, sampleOrbit } from "./math/orbit.ts";
@@ -213,6 +214,7 @@ function flightFailure(error: unknown): string {
 }
 
 async function boot(): Promise<void> {
+  clock.goLive();
   const key = readFirmsKey();
   ui.setKey(key);
   if (key) enabled.fires = true;
@@ -525,7 +527,7 @@ function publish(
     loading: false,
     error: flightError,
     count: flightList.length,
-    detail: "Southern California · about every 30 s",
+    detail: flightDetail(enabled.flights, clock.live, flightList.length, flights.length),
   });
   ui.setLayer("imagery", {
     enabled: enabled.imagery,
@@ -535,3 +537,4 @@ function publish(
     detail: imageNote,
   });
 }
+

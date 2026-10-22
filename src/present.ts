@@ -285,3 +285,8 @@ function formatError(meters: number): string {
   if (meters >= 1000) return `${(meters / 1000).toFixed(2)} km`;
   return `${Math.round(meters)} m`;
 }
+
+export function flightDetail(on: boolean, live: boolean, shown: number, sampled: number): string {
+  if (on && !live && shown === 0 && sampled > 0) return "Press Live to see planes";
+  return "Southern California · about every 30 s";
+}

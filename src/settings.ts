@@ -17,3 +17,21 @@ export function writeFirmsKey(key: string): void {
     // Storage can be blocked; the in-memory session still holds the key.
   }
 }
+
+const WELCOME_KEY = "godseye:welcomeDismissed";
+
+export function readWelcomeDismissed(): boolean {
+  try {
+    return localStorage.getItem(WELCOME_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function writeWelcomeDismissed(): void {
+  try {
+    localStorage.setItem(WELCOME_KEY, "1");
+  } catch {
+    // Storage can be blocked; the card simply shows again next visit.
+  }
+}
