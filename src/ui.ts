@@ -1,3 +1,4 @@
+import { readWelcomeDismissed, writeWelcomeDismissed } from "./settings.ts";
 import type { ClockView, DetailModel, LabModel, LayerName, LayerView, QuakeSpan } from "./types.ts";
 
 export interface UiHandlers {
@@ -57,8 +58,10 @@ export function mountUi(root: HTMLElement, handlers: UiHandlers): Ui {
   brand.prepend(titles);
   brand.insertBefore(brand.querySelector("svg")!, titles);
 
+  const tipsButton = button("Show tips", "ghost");
+  tipsButton.title = "Show the welcome tips again";
   const tools = el("div", "tools");
-  tools.append(home, labButton, settingsButton, layersButton);
+  tools.append(home, labButton, settingsButton, tipsButton, layersButton);
   const header = el("header", "topbar");
   header.append(brand, tools);
 
@@ -109,15 +112,19 @@ export function mountUi(root: HTMLElement, handlers: UiHandlers): Ui {
 
   const legend = el("div", "legend");
   legend.append(
-    swatch("Quakes", "#ffb347"),
-    swatch("Fires", "#ff6a2c"),
+    swatch("Small quakes", "#ffb840"),
+    swatch("Big quakes", "#ff2c18"),
+    swatch("Active fires", "#ff6a2c"),
     swatch("Storms", "#7ec8ff"),
-    swatch("ISS", "#ffd27a"),
+    swatch("Volcanoes", "#ff5d73"),
+    swatch("Wildfire events", "#ff9a3c"),
+    swatch("Satellites", "#c9d7f5"),
+    swatch("ISS (gold)", "#ffd27a"),
     swatch("Flights", "#9be7c4"),
   );
 
   const layers = el("aside", "panel layers");
-  layers.append(el("h2", undefined, "Layers"), layerList, legend);
+  layers.append(el("h2", undefined, "Layers"), layerList, el("h2", undefined, "Legend"), legend);
 
   const detailKicker = el("p", "kicker");
   const detailTitle = el("h2");
@@ -143,7 +150,7 @@ export function mountUi(root: HTMLElement, handlers: UiHandlers): Ui {
   keyInput.autocomplete = "off";
   keyInput.spellcheck = false;
   keyInput.maxLength = 128;
-  keyInput.placeholder = "Paste MAP_KEY";
+  keyInput.placeholder = "Paste MAP_KEY (optional)";
   keyInput.setAttribute("aria-label", "NASA FIRMS MAP_KEY");
   const save = button("Save key", "solid");
   save.type = "submit";
@@ -153,7 +160,7 @@ export function mountUi(root: HTMLElement, handlers: UiHandlers): Ui {
   const settingsCopy = el(
     "p",
     "note",
-    "The key stays in localStorage on this browser and is sent only to NASA FIRMS. It is never written into the project.",
+    "Only needed for the Active fires layer. Everything else works without it. The key stays in localStorage on this browser and is sent only to NASA FIRMS. It is never written into the project.",
   );
   const firmsLink = document.createElement("a");
   firmsLink.href = "https://firms.modaps.eosdis.nasa.gov/api/area/";
@@ -166,7 +173,7 @@ export function mountUi(root: HTMLElement, handlers: UiHandlers): Ui {
     event.preventDefault();
     handlers.onSaveKey(keyInput.value);
   });
-  settings.append(el("p", "kicker", "Settings"), el("h2", undefined, "NASA FIRMS"), form);
+  settings.append(el("p", "kicker", "Settings"), el("h2", undefined, "Optional: free NASA fire key (MAP_KEY)"), form);
   clear.addEventListener("click", () => handlers.onClearCache());
 
   const side = el("div", "side");
@@ -207,7 +214,27 @@ export function mountUi(root: HTMLElement, handlers: UiHandlers): Ui {
   toast.hidden = true;
   let toastTimer = 0;
 
-  root.append(upland, header, layers, side, timebar, toast);
+  const welcome = el("article", "panel card welcome");
+  const welcomeList = el("ul", "welcome-tips");
+  for (const tip of [
+    "Everything works without keys. Just look around.",
+    "Press Live (bottom bar) to see the world right now, including planes.",
+    "Press Upland or H to fly home. Drag to spin, scroll to zoom, double-click to fly somewhere.",
+    "Click a plane (green) or the gold ISS dot for details and the next pass over Upland.",
+    "Want wildfires? The fire key is optional and free: Settings, then Get a free MAP_KEY.",
+  ]) welcomeList.append(el("li", undefined, tip));
+  const welcomeDone = button("Got it", "solid");
+  welcome.append(el("p", "kicker", "Welcome"), el("h2", undefined, "Your first 5 minutes"), welcomeList, welcomeDone);
+  welcome.hidden = readWelcomeDismissed();
+  welcomeDone.addEventListener("click", () => {
+    welcome.hidden = true;
+    writeWelcomeDismissed();
+  });
+  tipsButton.addEventListener("click", () => {
+    welcome.hidden = false;
+  });
+
+  root.append(upland, header, layers, side, timebar, toast, welcome);
 
   let scrubbing = false;
   let rating = false;
