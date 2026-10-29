@@ -30,6 +30,7 @@ import {
 } from "three";
 import { EARTH_RADIUS_KM, latLonToXyz, xyzToLatLon } from "../math/geodesy.ts";
 import { SOCAL_BOX, UPLAND } from "../places.ts";
+import { directionFor, rotateWithDirection } from "../track.ts";
 import { MarkerBatch, type MarkerItem } from "./batch.ts";
 
 export interface TrailPath {
@@ -72,6 +73,10 @@ export class GlobeView {
   private readonly trails: LineSegments;
   private readonly trackGeometry = new BufferGeometry();
   private readonly tracks: LineSegments;
+  private readonly followGeometry = new BufferGeometry();
+  private readonly followTrail: LineSegments;
+  private followDir: Vector3 | null = null;
+  onFollowInterrupt: (() => void) | null = null;
   private readonly box: LineSegments;
   private readonly ring: Mesh;
   private flightState: { from: Vector3; to: Vector3; start: number; dur: number } | null = null;
@@ -99,6 +104,10 @@ export class GlobeView {
     this.controls.target.set(0, 0, 0);
     this.controls.addEventListener("start", () => {
       this.flightState = null;
+      if (this.followDir) {
+        this.followDir = null;
+        this.onFollowInterrupt?.();
+      }
     });
 
     this.earthMat = new MeshPhongMaterial({
@@ -173,6 +182,13 @@ export class GlobeView {
     this.tracks.frustumCulled = false;
     this.scene.add(this.tracks);
 
+    this.followTrail = new LineSegments(
+      this.followGeometry,
+      new LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.95 }),
+    );
+    this.followTrail.frustumCulled = false;
+    this.scene.add(this.followTrail);
+
     this.box = this.makeBox();
     this.scene.add(this.box);
 
@@ -211,6 +227,33 @@ export class GlobeView {
       this.trackGeometry,
       paths.map((path) => ({ color: path.color, altKm: 30, points: path.points.map((point) => ({ ...point, altKm: 30 })) })),
     );
+  }
+
+  setFollowTrail(points: { lat: number; lon: number; altKm: number }[], color: number): void {
+    this.writeLines(this.followGeometry, points.length > 1 ? [{ color, points }] : []);
+  }
+
+  /**
+   * Keep a moving target centred: rotate the camera by the target's own move
+   * since the last call. During a fly-to, only the direction is remembered,
+   * so the follow takes over seamlessly when the flight lands.
+   */
+  followTo(lat: number, lon: number): void {
+    const dir = directionFor(lat, lon);
+    const next = new Vector3(dir.x, dir.y, dir.z);
+    if (this.followDir && !this.flightState) {
+      const rotated = rotateWithDirection(
+        { x: this.camera.position.x, y: this.camera.position.y, z: this.camera.position.z },
+        { x: this.followDir.x, y: this.followDir.y, z: this.followDir.z },
+        { x: next.x, y: next.y, z: next.z },
+      );
+      this.camera.position.set(rotated.x, rotated.y, rotated.z);
+    }
+    this.followDir = next;
+  }
+
+  stopFollow(): void {
+    this.followDir = null;
   }
 
   setBoxVisible(visible: boolean): void {

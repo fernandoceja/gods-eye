@@ -27,6 +27,7 @@ import {
 } from "./present.ts";
 import { GlobeView } from "./render/globe.ts";
 import { readFirmsKey, writeFirmsKey } from "./settings.ts";
+import { TrailBuffer, trackDistanceKm, trailColor } from "./track.ts";
 import type { GeoEvent, LayerName, QuakeSpan } from "./types.ts";
 import { mountUi } from "./ui.ts";
 
@@ -73,6 +74,10 @@ let showStations = true;
 let showVisual = true;
 
 let selected: { layer: string; id: string } | null = null;
+let tracking: { layer: string; id: string } | null = null;
+let trackFlyPending = false;
+let lastSelectedEvent: GeoEvent | null = null;
+const trail = new TrailBuffer();
 let passCache: { key: string; text: string } | null = null;
 let trailsArmed = false;
 let lastTrail = 0;
@@ -169,8 +174,19 @@ const ui = mountUi(uiRoot, {
   },
   onCloseDetails: () => {
     selected = null;
+    stopTracking();
   },
+  onTrack: () => toggleTracking(),
 });
+
+globe.onFollowInterrupt = () => {
+  if (!tracking) return;
+  tracking = null;
+  trackFlyPending = false;
+  trail.clear();
+  globe.setFollowTrail([], 0);
+  ui.setTracking(false);
+};
 
 new ResizeObserver(() => globe.resize()).observe(canvas);
 
@@ -183,6 +199,14 @@ canvas.addEventListener("pointerup", (event) => {
   if (dx * dx + dy * dy > 16) return;
   selected = globe.pick(event.clientX, event.clientY);
   passCache = null;
+  if (tracking) {
+    if (selected && (selected.layer !== tracking.layer || selected.id !== tracking.id)) {
+      tracking = { ...selected };
+      trail.clear();
+      globe.setFollowTrail([], 0);
+      trackFlyPending = true;
+    } else if (!selected) stopTracking();
+  }
 });
 canvas.addEventListener("dblclick", (event) => {
   const ground = globe.groundAt(event.clientX, event.clientY);
@@ -196,7 +220,10 @@ window.addEventListener("keydown", (event) => {
     event.preventDefault();
     clock.playing = !clock.playing;
   } else if (event.key === "h" || event.key === "H") globe.flyHome();
-  else if (event.key === "Escape") selected = null;
+  else if (event.key === "Escape") {
+    if (tracking) stopTracking();
+    else selected = null;
+  } else if (event.key === "t" || event.key === "T") toggleTracking();
 });
 
 let pointerStart = { x: 0, y: 0 };
@@ -268,6 +295,21 @@ function frame(now: number): void {
   const selectedEvent = resolveSelection(quakeList, fireList, eventList, satList, flightList);
   const marker = markerFor(selectedEvent);
   globe.setSelection(marker);
+  lastSelectedEvent = selectedEvent;
+  if (tracking) {
+    if (selectedEvent && marker) {
+      if (trackFlyPending) {
+        globe.flyTo(marker.lat, marker.lon, trackDistanceKm(selectedEvent.type));
+        trackFlyPending = false;
+      }
+      globe.followTo(marker.lat, marker.lon);
+      trail.push({ lat: marker.lat, lon: marker.lon, altKm: marker.altKm, t: simTime });
+      globe.setFollowTrail(trail.points(), trailColor(selectedEvent));
+    } else {
+      stopTracking();
+      ui.toast("Tracking ended — the target left the current view");
+    }
+  }
   globe.frame(now);
   ui.placeUpland(globe.project(UPLAND.lat, UPLAND.lon, 40));
   ui.setClock({
@@ -329,6 +371,29 @@ function markerFor(event: GeoEvent | null): { lat: number; lon: number; altKm: n
   const marker = markers[0];
   if (!marker) return null;
   return { lat: marker.lat, lon: marker.lon, altKm: marker.altKm, sizeKm: marker.sizeKm };
+}
+
+function toggleTracking(): void {
+  if (tracking) {
+    stopTracking();
+    return;
+  }
+  if (!selected || !lastSelectedEvent) return;
+  tracking = { ...selected };
+  trail.clear();
+  trackFlyPending = true;
+  ui.setTracking(true);
+  ui.toast(`Tracking ${lastSelectedEvent.label || lastSelectedEvent.id}`);
+}
+
+function stopTracking(): void {
+  if (!tracking) return;
+  tracking = null;
+  trackFlyPending = false;
+  trail.clear();
+  globe.stopFollow();
+  globe.setFollowTrail([], 0);
+  ui.setTracking(false);
 }
 
 function passFor(event: GeoEvent, simTime: number): string {

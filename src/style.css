@@ -280,6 +280,8 @@ input[type="date"], input[type="password"], input[type="text"] {
 }
 
 .card .textish { float: right; }
+.card .track-toggle { margin-right: 10px; }
+.card .track-toggle[aria-pressed="true"] { color: var(--gold-2); }
 
 .kicker {
   font-size: 0.72rem;
