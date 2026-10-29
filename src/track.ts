@@ -83,6 +83,7 @@ export function trackDistanceKm(type: string): number {
 export function trailColor(event: GeoEvent): number {
   if (event.type === "flight") return 0x9be7c4;
   if (event.type === "satellite") return event.meta?.iss === true ? 0xffd27a : 0xc9d7f5;
+  if (event.type === "camera") return 0xcfd8ff;
   if (event.type === "fire") return 0xff6a2c;
   if (event.type === "earthquake") return 0xffb347;
   if (event.type === "severeStorms") return 0x7ec8ff;
