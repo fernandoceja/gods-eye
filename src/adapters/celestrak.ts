@@ -1,6 +1,7 @@
 import { twoline2satrec, type SatRec } from "satellite.js";
 import { cachedText } from "../cache.ts";
 import { SAMPLE_TLE } from "../data/tle-sample.ts";
+import { proxyUrl } from "../proxy.ts";
 import { TTL } from "../places.ts";
 import type { FetchLike, GeoEvent } from "../types.ts";
 import { propagateState } from "../math/orbit.ts";
@@ -20,7 +21,7 @@ export interface CatalogSat {
 
 export function celestrakUrl(group: SatGroup, viaProxy: boolean): string {
   const path = `/NORAD/elements/gp.php?GROUP=${group}&FORMAT=tle`;
-  return viaProxy ? `/proxy/celestrak${path}` : `https://celestrak.org${path}`;
+return viaProxy ? proxyUrl(`/proxy/celestrak${path}`) : `https://celestrak.org${path}`;
 }
 
 export function parseTle(text: string, group: SatGroup, sample = false): CatalogSat[] {
