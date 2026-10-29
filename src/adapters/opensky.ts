@@ -1,4 +1,5 @@
 import { SOCAL_BOX } from "../places.ts";
+import { proxyUrl } from "../proxy.ts";
 import type { FetchLike, GeoEvent } from "../types.ts";
 
 export function openskyUrl(
@@ -10,7 +11,7 @@ export function openskyUrl(
     lamax: String(box.lamax),
     lomax: String(box.lomax),
   });
-  return `/proxy/opensky/api/states/all?${params.toString()}`;
+return proxyUrl(`/proxy/opensky/api/states/all?${params.toString()}`);
 }
 
 type StateRow = [
