@@ -16,7 +16,7 @@ Target features, in rough build order. All data comes from public sources — th
 - **Animated weather** — wind, radar, and cloud layers scrubbed by the clock.
 - **Transit** — GTFS-Realtime vehicles where feeds are open.
 - **Cockpit ride-along, share links, sensor looks** — camera rides on tracked flights, URL-serialized views, FLIR/NVG/CRT styles.
-- **Voice control** — an OpenAI Realtime agent with tools over the map. The one paid piece: metered API usage with a spend cap, or the experimental ChatGPT OAuth route.
+- **Voice control** — the hey-jev pattern, not upstream's OpenAI Realtime agent: local Whisper (faster-whisper) transcribes, Jev (TypeSafe) routes each command as typed judgments in one call ($0.00004 per request), the app executes against its own data, and Fish Audio speaks the reply. An LLM wakes only for questions, not commands. Marginal cost ≈ $0 per command; a small local service beside the Vite proxies bridges the browser to Whisper and Jev.
 
 ## Why Three.js
 
