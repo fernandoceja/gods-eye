@@ -8,7 +8,7 @@ It is inspired by the open-source God's Eye View (https://github.com/bilawalsidh
 
 Target features, in rough build order. All data comes from public sources — the same published feeds and open datasets the upstream project uses, each under its provider's terms.
 
-- **Click-to-track anything** — camera lock-on, fading trails, and a live kinematics panel for flights, satellites, and fires.
+- **Click-to-track anything** — built: click a marker, then Track on its card (or press `T`), and the camera locks on and follows, a fading trail draws behind moving targets, and the details card stays live. Clicking another marker retargets; dragging the globe, pressing Escape, or closing the card hands control back.
 - **CCTV mesh** — public DOT and city traffic cameras projected into the 3D scene, California first (Caltrans), then the other networks upstream carries (TxDOT, TfL London, Fintraffic, DriveBC, DelDOT, WSDOT, and more; a few networks, like NYC DOT and FL511, are opt-in under their own agreements). Viewshed coverage volumes and a nearest-camera handoff from any tracked target.
 - **Public webcams** — published webcam feeds as a layer of their own.
 - **Mapped ALPR cameras** — license-plate-reader camera *locations* from OpenStreetMap (including DeFlock mapping), one city view at a time, with show-nearest. Locations and tags only — that is the upstream feature; it contains no plate data.
@@ -44,7 +44,7 @@ No accounts, tokens, or paid services are required to start. Earthquakes, natura
 
 ## Home
 
-The home button flies the camera to Upland, California: **34.0975° N, 117.6484° W**. Satellite passes are computed for that point, above a 5° elevation mask. Double-click the globe to fly somewhere else. Press `H` for home, space to play or pause, and Escape to close the details card.
+The home button flies the camera to Upland, California: **34.0975° N, 117.6484° W**. Satellite passes are computed for that point, above a 5° elevation mask. Double-click the globe to fly somewhere else. Press `H` for home, space to play or pause, and Escape to close the details card. Click a marker to select it, then press `T` or the card's Track button to follow it; Escape stops tracking first if a follow is active.
 
 ## Layers
 
