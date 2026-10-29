@@ -1,6 +1,6 @@
 # God's Eye
 
-A personal 3D Earth for Fernando Ceja in Upland, California: earthquakes, active fires, storms and volcanoes, a daily NASA true-color base map, satellite orbits, and flights over Southern California. One clock drives every layer.
+A personal 3D Earth for Fernando Ceja in Upland, California: earthquakes, active fires, storms and volcanoes, a daily NASA true-color base map, satellite orbits, flights over Southern California, and Caltrans traffic cameras. One clock drives every layer.
 
 It is inspired by the open-source God's Eye View (https://github.com/bilawalsidhu/gods-eye-view) and began as a smaller instrument. The goal now is to grow it toward that project's full feature set — including its public camera layers — reimplemented in this stack: same signals, own code, one clock. Upstream source code is MIT-licensed (© Bilawal Sidhu); features are ported as designs and data sources, and data is fetched from the original providers under their own terms.
 
@@ -9,7 +9,7 @@ It is inspired by the open-source God's Eye View (https://github.com/bilawalsidh
 Target features, in rough build order. All data comes from public sources — the same published feeds and open datasets the upstream project uses, each under its provider's terms.
 
 - **Click-to-track anything** — built: click a marker, then Track on its card (or press `T`), and the camera locks on and follows, a fading trail draws behind moving targets, and the details card stays live. Clicking another marker retargets; dragging the globe, pressing Escape, or closing the card hands control back.
-- **CCTV mesh** — public DOT and city traffic cameras projected into the 3D scene, California first (Caltrans), then the other networks upstream carries (TxDOT, TfL London, Fintraffic, DriveBC, DelDOT, WSDOT, and more; a few networks, like NYC DOT and FL511, are opt-in under their own agreements). Viewshed coverage volumes and a nearest-camera handoff from any tracked target.
+- **CCTV mesh** — Caltrans built: districts 7, 8, and 12 are a globe layer of public traffic cameras; click one for its live still, route, and direction. Still to come: the other networks upstream carries (TxDOT, TfL London, Fintraffic, DriveBC, DelDOT, WSDOT, and more; a few networks, like NYC DOT and FL511, are opt-in under their own agreements), viewshed coverage volumes, and a nearest-camera handoff from any tracked target.
 - **Public webcams** — published webcam feeds as a layer of their own.
 - **Mapped ALPR cameras** — license-plate-reader camera *locations* from OpenStreetMap (including DeFlock mapping), one city view at a time, with show-nearest. Locations and tags only — that is the upstream feature; it contains no plate data.
 - **Ships (AIS)** — live vessels, Port of Long Beach first.
@@ -58,6 +58,7 @@ Each feed is normalized to one schema: `id`, `type`, `time`, `lat`, `lon`, `alt`
 | True color | [NASA GIBS](https://nasa-gibs.github.io/gibs-api-docs/) VIIRS SNPP Corrected Reflectance True Color | The base map for that UTC day. This is the NASA cameras layer. |
 | Satellites | [CelesTrak](https://celestrak.org/NORAD/elements/) GP elements, `stations` and `visual` groups | Propagated speed (m/s) from satellite.js. Altitude is meters. |
 | Flights | [OpenSky Network](https://openskynetwork.github.io/opensky-api/) anonymous states | Ground speed (m/s). Heading is in `meta`. |
+| Traffic cameras | [Caltrans CCTV](https://cwwp2.dot.ca.gov/) districts 7, 8, and 12, through the local proxy | A live still per camera. `alt` is the camera elevation; the stream URL is in `meta`. |
 
 The time slider covers the past week through a few hours ahead. Playback runs from 1× to 1000×. Satellites are propagated to the clock. Quakes, fires, and events appear when the clock reaches them. Flights are a live sample: they dead-reckon for three minutes of sim time, then drop off until the next poll. High speeds outrun that sample; use Live to watch them move.
 
@@ -95,10 +96,11 @@ Clear cached feeds in Settings if you want the next visit to refetch. JSON feeds
 
 The browser calls USGS, EONET, and GIBS directly. Those servers send `Access-Control-Allow-Origin: *`.
 
-Two feeds do not:
+Three feeds do not:
 
 - **OpenSky** is requested through `/proxy/opensky`. The anonymous API is not usable from a browser page.
 - **FIRMS** is requested through `/proxy/firms`. Error responses omit CORS headers, which would hide a bad key from the page.
+- **Caltrans** camera catalogs are requested through `/proxy/caltrans`. The still images themselves load directly from Caltrans.
 
 CelesTrak is requested directly. If that fails (CORS or a network block), the app retries `/proxy/celestrak`. The proxy is the Vite dev server in `vite.config.ts`. It exists only so `npm run dev` can reach those hosts. It is not a hosted service.
 
