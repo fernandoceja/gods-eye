@@ -36,7 +36,9 @@ const proxy = {
   },
 };
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
+  // GitHub Pages serves the app from /gods-eye/; local dev stays at the root.
+  base: command === "build" ? "/gods-eye/" : "/",
   resolve: {
     alias: {
       "satellite.js": fileURLToPath(new URL("./src/satellite-classic.ts", import.meta.url)),
@@ -58,4 +60,4 @@ export default defineConfig({
     environment: "node",
     include: ["tests/**/*.test.ts"],
   },
-});
+}));
