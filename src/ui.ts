@@ -72,6 +72,7 @@ export function mountUi(root: HTMLElement, handlers: UiHandlers): Ui {
   layerBits.set("events", makeLayer("events", "Natural events", handlers, layerList));
   layerBits.set("satellites", makeLayer("satellites", "Satellites", handlers, layerList));
   layerBits.set("flights", makeLayer("flights", "Flights", handlers, layerList));
+  layerBits.set("cameras", makeLayer("cameras", "Traffic cameras", handlers, layerList));
 
   const dateInput = document.createElement("input");
   dateInput.type = "date";
@@ -116,6 +117,7 @@ export function mountUi(root: HTMLElement, handlers: UiHandlers): Ui {
     swatch("Storms", "#7ec8ff"),
     swatch("ISS", "#ffd27a"),
     swatch("Flights", "#9be7c4"),
+    swatch("Cameras", "#cfd8ff"),
   );
 
   const layers = el("aside", "panel layers");
@@ -132,9 +134,13 @@ export function mountUi(root: HTMLElement, handlers: UiHandlers): Ui {
   trackButton.setAttribute("aria-pressed", "false");
   trackButton.title = "Follow this target with the camera (T)";
   trackButton.addEventListener("click", () => handlers.onTrack());
+  const snapshot = document.createElement("img");
+  snapshot.className = "snapshot";
+  snapshot.hidden = true;
+  snapshot.alt = "";
   const details = el("article", "panel card");
   details.hidden = true;
-  details.append(close, trackButton, detailKicker, detailTitle, detailSource, detailRows, detailNote);
+  details.append(close, trackButton, detailKicker, detailTitle, detailSource, snapshot, detailRows, detailNote);
 
   const labHeading = el("h2");
   const labRows = el("div", "facts");
@@ -295,6 +301,7 @@ export function mountUi(root: HTMLElement, handlers: UiHandlers): Ui {
     setDetails(model) {
       if (!model) {
         details.hidden = true;
+        snapshot.hidden = true;
         return;
       }
       details.hidden = false;
@@ -310,6 +317,19 @@ export function mountUi(root: HTMLElement, handlers: UiHandlers): Ui {
       );
       detailNote.textContent = model.note ?? "";
       detailNote.hidden = !model.note;
+      if (model.image) {
+        const bucket = Math.floor(Date.now() / 60_000);
+        const key = `${model.image.src}|${bucket}`;
+        if (snapshot.dataset.key !== key) {
+          snapshot.dataset.key = key;
+          snapshot.src = `${model.image.src}${model.image.src.includes("?") ? "&" : "?"}t=${bucket}`;
+          snapshot.alt = model.image.alt;
+        }
+        snapshot.hidden = false;
+      } else {
+        snapshot.hidden = true;
+        delete snapshot.dataset.key;
+      }
     },
     setTracking(on) {
       trackButton.textContent = on ? "Stop tracking" : "Track";
