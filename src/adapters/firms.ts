@@ -1,9 +1,10 @@
 import { cachedText } from "../cache.ts";
 import { TTL } from "../places.ts";
+import { proxyUrl } from "../proxy.ts";
 import type { FetchLike, GeoEvent } from "../types.ts";
 
 export function firmsUrl(mapKey: string): string {
-  return `/proxy/firms/api/area/csv/${encodeURIComponent(mapKey)}/VIIRS_SNPP_NRT/world/1`;
+return proxyUrl(`/proxy/firms/api/area/csv/${encodeURIComponent(mapKey)}/VIIRS_SNPP_NRT/world/1`);
 }
 
 export function normalizeFirms(csv: string): GeoEvent[] {
