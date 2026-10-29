@@ -100,6 +100,17 @@ export function satelliteMarkers(events: GeoEvent[]): MarkerItem[] {
   });
 }
 
+export function cameraMarkers(events: GeoEvent[]): MarkerItem[] {
+  return events.map((event) => ({
+    id: event.id,
+    lat: event.lat,
+    lon: event.lon,
+    altKm: 26,
+    color: 0xcfd8ff,
+    sizeKm: 15,
+  }));
+}
+
 export interface FlightNow {
   event: GeoEvent;
   marker: MarkerItem;
@@ -199,6 +210,24 @@ export function detailModel(event: GeoEvent, pass?: string): DetailModel {
         { label: "Reckoning error", value: typeof error === "number" ? formatError(error) : "Waiting for the next poll" },
       ],
       note: "Position is dead-reckoned from the last OpenSky fix while the clock runs.",
+    };
+  }
+  if (event.type === "camera") {
+    const imageUrl = typeof event.meta?.imageUrl === "string" ? event.meta.imageUrl : "";
+    return {
+      kicker: "Traffic camera",
+      title: event.label || "Caltrans camera",
+      source: "Caltrans",
+      rows: [
+        { label: "Route", value: String(event.meta?.route || "—") },
+        { label: "Near", value: String(event.meta?.nearbyPlace || "—") },
+        { label: "Direction", value: String(event.meta?.direction || "—") },
+        { label: "District", value: typeof event.meta?.district === "number" ? `D${event.meta.district}` : "—" },
+        { label: "Elevation", value: event.alt ? km(event.alt) : "—" },
+        { label: "Location", value: `${event.lat.toFixed(3)}°, ${event.lon.toFixed(3)}°` },
+      ],
+      ...(imageUrl ? { image: { src: imageUrl, alt: event.label || "Caltrans camera" } } : {}),
+      note: "Live still from Caltrans. The card reloads it about once a minute while this camera stays selected.",
     };
   }
   if (event.type === "satellite") {
