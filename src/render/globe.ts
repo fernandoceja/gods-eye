@@ -167,6 +167,7 @@ export class GlobeView {
     this.batches.set("events", new MarkerBatch(this.scene, "events", sphere, "sphere"));
     this.batches.set("satellites", new MarkerBatch(this.scene, "satellites", sphere, "sphere"));
     this.batches.set("flights", new MarkerBatch(this.scene, "flights", cone, "chevron"));
+    this.batches.set("cameras", new MarkerBatch(this.scene, "cameras", sphere, "sphere"));
 
     this.trails = new LineSegments(
       this.trailGeometry,

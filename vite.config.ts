@@ -26,6 +26,14 @@ const proxy = {
     rewrite: (path: string) => path.replace(/^\/proxy\/celestrak/, ""),
     headers: { "User-Agent": "GodsEye/1.0 (educational; local)", Accept: "text/plain" },
   },
+  "/proxy/caltrans": {
+    target: "https://cwwp2.dot.ca.gov",
+    changeOrigin: true,
+    timeout: 30_000,
+    proxyTimeout: 30_000,
+    rewrite: (path: string) => path.replace(/^\/proxy\/caltrans/, ""),
+    headers: { "User-Agent": "GodsEye/1.0 (educational; local)", Accept: "application/json" },
+  },
 };
 
 export default defineConfig({

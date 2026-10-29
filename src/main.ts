@@ -1,4 +1,5 @@
 import "./style.css";
+import { loadCaltrans } from "./adapters/caltrans.ts";
 import { loadCelestrak, sampleCatalog, catalogToEvents, type CatalogSat } from "./adapters/celestrak.ts";
 import { loadEonet } from "./adapters/eonet.ts";
 import { loadFirms } from "./adapters/firms.ts";
@@ -12,6 +13,7 @@ import { EARTH_RADIUS_KM } from "./math/geodesy.ts";
 import { nextPass, sampleOrbit } from "./math/orbit.ts";
 import { UPLAND } from "./places.ts";
 import {
+  cameraMarkers,
   currentEvents,
   detailModel,
   eventTracks,
@@ -45,6 +47,7 @@ const enabled: Record<LayerName, boolean> = {
   events: true,
   satellites: true,
   flights: true,
+  cameras: false,
   imagery: true,
 };
 
@@ -66,6 +69,10 @@ let flights: GeoEvent[] = [];
 let flightError: string | null = null;
 let flightGeneration = 0;
 let flightTimer = 0;
+
+let cameras: GeoEvent[] = [];
+let camLoading = false;
+let camError: string | null = null;
 
 let catalog: CatalogSat[] = [];
 let satLoading = false;
@@ -105,6 +112,7 @@ const ui = mountUi(uiRoot, {
       else stopFlights();
     }
     if (layer === "fires" && on) void refreshFires();
+    if (layer === "cameras" && on) void refreshCameras();
     if (layer === "satellites" && !on) {
       globe.setTrails([]);
       trailsArmed = false;
@@ -167,6 +175,7 @@ const ui = mountUi(uiRoot, {
     if (layer === "events") void refreshEonet();
     if (layer === "satellites") void refreshSats();
     if (layer === "flights") startFlights();
+    if (layer === "cameras") void refreshCameras();
     if (layer === "imagery") {
       pendingDate = "";
       shownDate = "";
@@ -271,6 +280,7 @@ function frame(now: number): void {
   globe.setMarkers("events", enabled.events ? naturalMarkers(eventList) : []);
   globe.setMarkers("satellites", satelliteMarkers(satList));
   globe.setMarkers("flights", flightList.map((flight) => flight.marker));
+  globe.setMarkers("cameras", enabled.cameras ? cameraMarkers(cameras) : []);
   globe.setBoxVisible(enabled.flights);
   globe.setTracks(enabled.events ? eventTracks(natural, simTime) : []);
 
@@ -351,7 +361,9 @@ function resolveSelection(
             ? satList
             : selected.layer === "flights"
               ? flightList.map((flight) => flight.event)
-              : [];
+              : selected.layer === "cameras"
+                ? cameras
+                : [];
   return pool.find((event) => event.id === selected?.id) ?? null;
 }
 
@@ -364,10 +376,12 @@ function markerFor(event: GeoEvent | null): { lat: number; lon: number; altKm: n
         ? fireMarkers([event])
         : event.type === "satellite"
           ? satelliteMarkers([event])
-          : event.type === "flight"
-            ? reckonFlights([event], event.time)
-                .map((flight) => flight.marker)
-            : naturalMarkers([event]);
+          : event.type === "camera"
+            ? cameraMarkers([event])
+            : event.type === "flight"
+              ? reckonFlights([event], event.time)
+                  .map((flight) => flight.marker)
+              : naturalMarkers([event]);
   const marker = markers[0];
   if (!marker) return null;
   return { lat: marker.lat, lon: marker.lon, altKm: marker.altKm, sizeKm: marker.sizeKm };
@@ -394,6 +408,19 @@ function stopTracking(): void {
   globe.stopFollow();
   globe.setFollowTrail([], 0);
   ui.setTracking(false);
+}
+
+async function refreshCameras(): Promise<void> {
+  camLoading = true;
+  try {
+    cameras = await loadCaltrans();
+    camError = null;
+    ui.toast(`Loaded ${cameras.length} traffic cameras`);
+  } catch (error) {
+    camError = error instanceof Error ? error.message : "Caltrans request failed";
+  } finally {
+    camLoading = false;
+  }
 }
 
 function passFor(event: GeoEvent, simTime: number): string {
@@ -591,6 +618,13 @@ function publish(
     error: flightError,
     count: flightList.length,
     detail: "Southern California · about every 30 s",
+  });
+  ui.setLayer("cameras", {
+    enabled: enabled.cameras,
+    loading: camLoading,
+    error: camError,
+    count: cameras.length,
+    detail: "Caltrans · districts 7, 8, 12",
   });
   ui.setLayer("imagery", {
     enabled: enabled.imagery,

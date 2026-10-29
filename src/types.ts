@@ -16,7 +16,7 @@ export type FetchLike = (input: string, init?: RequestInit) => Promise<Response>
 
 export type QuakeSpan = "day" | "week";
 
-export type LayerName = "quakes" | "fires" | "events" | "satellites" | "flights" | "imagery";
+export type LayerName = "quakes" | "fires" | "events" | "satellites" | "flights" | "cameras" | "imagery";
 
 export interface LayerView {
   enabled: boolean;
@@ -33,6 +33,7 @@ export interface DetailModel {
   source: string;
   rows: { label: string; value: string }[];
   note?: string;
+  image?: { src: string; alt: string };
 }
 
 export interface LabModel {

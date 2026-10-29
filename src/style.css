@@ -283,6 +283,16 @@ input[type="date"], input[type="password"], input[type="text"] {
 .card .track-toggle { margin-right: 10px; }
 .card .track-toggle[aria-pressed="true"] { color: var(--gold-2); }
 
+.card .snapshot {
+  width: 100%;
+  display: block;
+  border-radius: 10px;
+  margin: 2px 0 10px;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: rgba(0, 0, 0, 0.35);
+}
+
 .kicker {
   font-size: 0.72rem;
   letter-spacing: 0.12em;

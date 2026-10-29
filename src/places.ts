@@ -24,4 +24,5 @@ export const TTL = {
   eonet: 10 * 60_000,
   celestrak: 2 * HOUR_MS,
   firms: 30 * 60_000,
+  caltrans: 10 * 60_000,
 } as const;
