@@ -1,5 +1,6 @@
 import { cachedText } from "../cache.ts";
 import { TTL } from "../places.ts";
+import { proxyUrl } from "../proxy.ts";
 import type { FetchLike, GeoEvent } from "../types.ts";
 
 /** Southern California first: Los Angeles/Ventura (7), the Inland Empire (8), Orange County (12). */
@@ -9,7 +10,7 @@ const IMAGE_HOST = "https://cwwp2.dot.ca.gov/";
 
 export function caltransUrl(district: number): string {
   const padded = String(district).padStart(2, "0");
-  return `/proxy/caltrans/data/d${district}/cctvStatusD${padded}.json`;
+return proxyUrl(`/proxy/caltrans/data/d${district}/cctvStatusD${padded}.json`);
 }
 
 interface CaltransLocation {
