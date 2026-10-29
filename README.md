@@ -1,8 +1,22 @@
 # God's Eye
 
-A personal 3D Earth for Fernando Ceja in Upland, California. Public, aggregate data only: earthquakes, active fires, storms and volcanoes, a daily NASA true-color base map, satellite orbits, and flights over Southern California. One clock drives every layer.
+A personal 3D Earth for Fernando Ceja in Upland, California: earthquakes, active fires, storms and volcanoes, a daily NASA true-color base map, satellite orbits, and flights over Southern California. One clock drives every layer.
 
-It is inspired by Matt Wolfe's open-source God's Eye View demo, and it is a smaller instrument: no CCTV, no webcams, and no tracking of individual people.
+It is inspired by the open-source God's Eye View (https://github.com/bilawalsidhu/gods-eye-view) and began as a smaller instrument. The goal now is to grow it toward that project's full feature set — including its public camera layers — reimplemented in this stack: same signals, own code, one clock. Upstream source code is MIT-licensed (© Bilawal Sidhu); features are ported as designs and data sources, and data is fetched from the original providers under their own terms.
+
+## Direction — growing toward God's Eye View
+
+Target features, in rough build order. All data comes from public sources — the same published feeds and open datasets the upstream project uses, each under its provider's terms.
+
+- **Click-to-track anything** — camera lock-on, fading trails, and a live kinematics panel for flights, satellites, and fires.
+- **CCTV mesh** — public DOT and city traffic cameras projected into the 3D scene, California first (Caltrans), then the other networks upstream carries (TxDOT, TfL London, Fintraffic, DriveBC, DelDOT, WSDOT, and more; a few networks, like NYC DOT and FL511, are opt-in under their own agreements). Viewshed coverage volumes and a nearest-camera handoff from any tracked target.
+- **Public webcams** — published webcam feeds as a layer of their own.
+- **Mapped ALPR cameras** — license-plate-reader camera *locations* from OpenStreetMap (including DeFlock mapping), one city view at a time, with show-nearest. Locations and tags only — that is the upstream feature; it contains no plate data.
+- **Ships (AIS)** — live vessels, Port of Long Beach first.
+- **Animated weather** — wind, radar, and cloud layers scrubbed by the clock.
+- **Transit** — GTFS-Realtime vehicles where feeds are open.
+- **Cockpit ride-along, share links, sensor looks** — camera rides on tracked flights, URL-serialized views, FLIR/NVG/CRT styles.
+- **Voice control** — an OpenAI Realtime agent with tools over the map. The one paid piece: metered API usage with a spend cap, or the experimental ChatGPT OAuth route.
 
 ## Why Three.js
 
@@ -90,4 +104,4 @@ CelesTrak is requested directly. If that fails (CORS or a network block), the ap
 
 ## Scope
 
-Public infrastructure and aggregate data only. There are no CCTV or webcam feeds, and no attempt to identify or follow a person. Flight callsigns and countries are whatever OpenSky already publishes for aircraft.
+Every layer reads a public source: published government and city feeds, open datasets, and open mapping. Camera layers carry the same public DOT and city feeds the upstream project carries, under each provider's terms — a few networks are opt-in and stay off until their own agreements are accepted. The ALPR layer maps where cameras are (OpenStreetMap data); it contains no plate reads and no video. Flight callsigns and countries are whatever OpenSky already publishes for aircraft.
