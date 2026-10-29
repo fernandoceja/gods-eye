@@ -15,12 +15,14 @@ export interface UiHandlers {
   onClearCache: () => void;
   onRetry: (layer: LayerName) => void;
   onCloseDetails: () => void;
+  onTrack: () => void;
 }
 
 export interface Ui {
   setLayer(name: LayerName, view: LayerView): void;
   setClock(view: ClockView): void;
   setDetails(model: DetailModel | null): void;
+  setTracking(on: boolean): void;
   setLab(model: LabModel): void;
   setImageryDate(iso: string): void;
   setKey(key: string): void;
@@ -126,9 +128,13 @@ export function mountUi(root: HTMLElement, handlers: UiHandlers): Ui {
   const detailNote = el("p", "note");
   const close = button("Close", "textish");
   close.addEventListener("click", () => handlers.onCloseDetails());
+  const trackButton = button("Track", "textish track-toggle");
+  trackButton.setAttribute("aria-pressed", "false");
+  trackButton.title = "Follow this target with the camera (T)";
+  trackButton.addEventListener("click", () => handlers.onTrack());
   const details = el("article", "panel card");
   details.hidden = true;
-  details.append(close, detailKicker, detailTitle, detailSource, detailRows, detailNote);
+  details.append(close, trackButton, detailKicker, detailTitle, detailSource, detailRows, detailNote);
 
   const labHeading = el("h2");
   const labRows = el("div", "facts");
@@ -304,6 +310,10 @@ export function mountUi(root: HTMLElement, handlers: UiHandlers): Ui {
       );
       detailNote.textContent = model.note ?? "";
       detailNote.hidden = !model.note;
+    },
+    setTracking(on) {
+      trackButton.textContent = on ? "Stop tracking" : "Track";
+      trackButton.setAttribute("aria-pressed", on ? "true" : "false");
     },
     setLab(model) {
       labHeading.textContent = model.heading;
